@@ -1,0 +1,96 @@
+# OpenVPN Server Setup on OPNsense
+
+## Prerequisites:
+- OPNsense firewall installed and running.
+- Administrator access to the OPNsense web interface.
+- A public IP or domain for clients to connect to your VPN server.
+
+## Step-by-Step OpenVPN Setup:
+
+### 1. Login to the OPNsense Web Interface
+- Access your OPNsense web interface using your browser (e.g., `https://<OPNsense-IP>`).
+- Log in with your admin credentials.
+
+### 2. Install OpenVPN Plugin
+- Go to **System > Firmware > Plugins**.
+- Search for `os-openvpn` and ensure it's installed.
+
+### 3. Create CA (Certificate Authority)
+- Go to **System > Trust > Authorities**.
+- Click the **Add (+)** button.
+- Fill in the following fields:
+  - **Descriptive name**: e.g., OpenVPN_CA
+  - **Method**: Create an internal Certificate Authority
+  - **Key length**: 2048 bits
+  - **Digest Algorithm**: SHA256
+  - **Common Name**: e.g., OPNsense VPN CA
+- Leave the rest as default, then click **Save**.
+
+### 4. Create Server Certificate
+- Go to **System > Trust > Certificates**.
+- Click the **Add (+)** button.
+- Fill in the following fields:
+  - **Method**: Create an internal Certificate
+  - **Certificate Authority**: Select the CA you just created (OpenVPN_CA)
+  - **Key length**: 2048
+  - **Digest Algorithm**: SHA256
+  - **Common Name**: e.g., OpenVPN_Server
+- Click **Save**.
+
+### 5. Configure OpenVPN Server
+- Navigate to **VPN > OpenVPN > Servers**.
+- Click **Add (+)** to create a new OpenVPN server.
+- Fill in the following fields:
+  - **Server Mode**: Remote Access (User Auth)
+  - **Backend for authentication**: Local Database
+  - **Protocol**: UDP (or TCP if preferred)
+  - **Device mode**: tun
+  - **Interface**: WAN
+  - **Local port**: 1194 (default OpenVPN port, change if needed)
+  - **TLS Authentication**: Enable
+    - Click on the button to automatically generate the TLS key.
+  - **Peer Certificate Authority**: Select the CA (OpenVPN_CA) created earlier
+  - **Server Certificate**: Select the server certificate created (OpenVPN_Server)
+  - **DH Parameter length**: 2048
+  - **Encryption Algorithm**: AES-256-CBC
+  - **Auth Digest Algorithm**: SHA256
+  - **Tunnel Network**: Enter a network for the VPN, e.g., `10.8.0.0/24`
+  - **Local Network**: Enter your LAN network, e.g., `192.168.1.0/24`
+- Leave other settings as default, then click **Save**.
+
+### 6. Create OpenVPN Firewall Rule
+- Go to **Firewall > Rules > WAN**.
+- Click **Add (+)** to create a new rule.
+  - **Action**: Pass
+  - **Interface**: WAN
+  - **Protocol**: UDP
+  - **Source**: any
+  - **Destination**: WAN address
+  - **Destination port range**: 1194 (or the port you configured earlier)
+- Click **Save** and apply the changes.
+
+### 7. Create OpenVPN Client Export
+- Navigate to **VPN > OpenVPN > Client Export**.
+- Fill in the fields for exporting user configurations:
+  - **Remote Access Server**: Select your OpenVPN server
+  - **Host Name Resolution**: Use your public IP or domain name
+- Download the client configuration file (`.ovpn`) for each user.
+
+### 8. Create User Accounts
+- Go to **System > Access > Users**.
+- Add a new user by clicking **Add (+)**.
+- Create a username and password for the user.
+- Assign the user a certificate by checking **Create a user certificate** and selecting the CA (OpenVPN_CA).
+- Click **Save**.
+
+### 9. Connect to OpenVPN
+- Distribute the downloaded `.ovpn` file to the client devices.
+- Install the OpenVPN client software on client devices (Windows, macOS, Linux, Android, etc.).
+- Import the `.ovpn` configuration file and connect to the VPN.
+
+### 10. Testing
+- After setting everything up, connect a client to the OpenVPN server and verify that the connection works and that the client can access the internal network.
+
+---
+
+That's it! You should now have a functional OpenVPN server running on OPNsense.
