@@ -1,0 +1,63 @@
+# Nginx Setup on OPNsense
+
+## Prerequisites:
+- OPNsense firewall installed and running.
+- Administrator access to the OPNsense web interface.
+- The Nginx plugin installed (os-nginx).
+- Server IP: `192.168.100.100`.
+- Domain: `smk1.sitedemo.my.id`.
+- Port: `443` for HTTPS traffic.
+
+## Step-by-Step Nginx Setup:
+
+### 1. Install the Nginx Plugin on OPNsense
+1. Log in to the OPNsense web interface.
+2. Navigate to **System > Firmware > Plugins**.
+3. Search for `os-nginx` and install the **Nginx** plugin if it's not already installed.
+
+### 2. Enable the Nginx Service
+1. After the plugin is installed, go to **Services > Nginx > Configuration**.
+2. Under the **General Settings** tab, check the box **Enable Nginx** to enable the service.
+3. Click **Save**, then click **Apply Changes**.
+
+### 3. Configure HTTP(S) Server for Nginx
+#### Step 1: Create an HTTPS Server Configuration
+1. Navigate to **Services > Nginx > Configuration > HTTP(S) > Server**.
+2. Click the **Add (+)** button to create a new server.
+   
+#### Step 2: Fill in the following fields:
+- **Listen Addresses**: `192.168.100.100`
+- **Port**: `443` (for HTTPS traffic)
+- **Server Name**: `smk1.sitedemo.my.id`
+
+#### Step 3: SSL/TLS Configuration
+- **SSL Certificate**: You need an SSL certificate for your domain (`smk1.sitedemo.my.id`). You can either:
+  - Generate a self-signed certificate or
+  - Obtain a certificate from Let's Encrypt or another certificate authority.
+- To configure SSL:
+  1. Go to **Services > Nginx > Configuration > HTTP(S) > Certificates**.
+  2. Click **Add (+)** to upload your certificate or create a new self-signed one.
+  3. Select the appropriate certificate for your server in the **SSL Certificate** field of the server configuration.
+
+#### Step 4: Configure HTTP to HTTPS Redirection (Optional)
+- If you want to automatically redirect HTTP traffic to HTTPS:
+  1. Go to **Services > Nginx > Configuration > HTTP(S) > Location**.
+  2. Set up a redirect rule that sends all HTTP requests to HTTPS.
+
+#### Step 5: Save and Apply
+- Click **Save** and then **Apply Changes** to apply your Nginx configuration.
+
+### 4. Configure Firewall Rules for Nginx
+1. Go to **Firewall > Rules > WAN**.
+2. Add a new rule to allow traffic on port `443` for HTTPS:
+   - **Action**: Pass
+   - **Interface**: WAN
+   - **Protocol**: TCP
+   - **Destination**: WAN Address
+   - **Destination Port Range**: `443`
+3. Save the rule and click **Apply Changes**.
+
+---
+
+That's it! Nginx is now set up on OPNsense to serve traffic for the domain `smk1.sitedemo.my.id` on port `443`.
+
